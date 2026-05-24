@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<title>Promotions - J8K Ventures Dashboard</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#f0f2f5;
+}
+
+.loading{
+    text-align:center;
+    padding:50px;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}
+
+.spinner{
+    width:50px;
+    height:50px;
+    border:4px solid #ddd;
+    border-top-color:#0a7cff;
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+    margin-bottom:20px;
+}
+
+@keyframes spin{
+    to{transform:rotate(360deg);}
+}
+
+.dashboard-header{
+    background:white;
+    padding:15px 25px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    position:sticky;
+    top:0;
+    z-index:100;
+    flex-wrap:wrap;
+    gap:15px;
+}
+
+.dashboard-header h1{
+    font-size:20px;
+    color:#0a7cff;
+}
+
+.user-info{
+    display:flex;
+    align-items:center;
+    gap:15px;
+}
+
+.user-email{
+    font-size:14px;
+    color:#666;
+}
+
+.logout-btn{
+    background:#dc3545;
+    color:white;
+    border:none;
+    padding:8px 20px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:14px;
+}
+
+.dashboard-body{
+    display:flex;
+    min-height:calc(100vh - 65px);
+}
+
+.sidebar{
+    width:260px;
+    background:#1a1a2e;
+    color:white;
+    padding:20px 0;
+}
+
+.sidebar a{
+    display:block;
+    padding:14px 20px;
+    color:white;
+    text-decoration:none;
+    transition:all 0.3s;
+}
+
+.sidebar a:hover, .sidebar a.active{
+    background:#0a7cff;
+}
+
+.sidebar a i{
+    margin-right:12px;
+    width:20px;
+}
+
+.content{
+    flex:1;
+    padding:25px;
+    overflow-x:auto;
+}
+
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+    flex-wrap:wrap;
+    gap:15px;
+}
+
+.page-header h2{
+    font-size:24px;
+}
+
+.btn{
+    padding:10px 20px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:14px;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+}
+
+.btn-primary{
+    background:#0a7cff;
+    color:white;
+}
+
+.btn-primary:hover{
+    background:#005fcc;
+}
+
+.btn-danger{
+    background:#dc3545;
+    color:white;
+}
+
+.btn-danger:hover{
+    background:#c82333;
+}
+
+.btn-sm{
+    padding:6px 12px;
+    font-size:12px;
+}
+
+.form-card{
+    background:white;
+    border-radius:12px;
+    padding:25px;
+    margin-bottom:25px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+.form-group{
+    margin-bottom:20px;
+}
+
+.form-group label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:bold;
+    font-size:14px;
+}
+
+.form-group input, .form-group textarea, .form-group select{
+    width:100%;
+    padding:12px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    font-size:14px;
+}
+
+table{
+    width:100%;
+    background:white;
+    border-radius:12px;
+    overflow:hidden;
+}
+
+th, td{
+    padding:12px;
+    text-align:left;
+    border-bottom:1px solid #eee;
+}
+
+th{
+    background:#f8f9fa;
+}
+
+.modal{
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    background:rgba(0,0,0,0.5);
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+}
+
+.modal-content{
+    background:white;
+    max-width:500px;
+    width:90%;
+    border-radius:15px;
+    max-height:85vh;
+    overflow-y:auto;
+}
+
+.modal-header{
+    padding:18px;
+    border-bottom:1px solid #ddd;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.modal-body{
+    padding:20px;
+}
+
+.toast{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    background:#333;
+    color:white;
+    padding:12px 20px;
+    border-radius:8px;
+    z-index:1000;
+    display:none;
+}
+
+@media (max-width:768px){
+    .dashboard-body{
+        flex-direction:column;
+    }
+    .sidebar{
+        width:100%;
+        display:flex;
+        overflow-x:auto;
+        padding:10px;
+    }
+    .sidebar a{
+        display:inline-block;
+        padding:10px 15px;
+        white-space:nowrap;
+    }
+    table{
+        font-size:12px;
+    }
+    th, td{
+        padding:8px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Loading promotions...</p>
+</div>
+
+<div id="dashboardContent" style="display:none;">
+    <div class="dashboard-header">
+        <h1 id="companyNameHeader">J8K Ventures</h1>
+        <div class="user-info">
+            <span class="user-email" id="userEmail"></span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+    
+    <div class="dashboard-body">
+        <div class="sidebar">
+            <a href="index.html"><i>📊</i> Overview</a>
+            <a href="products.html"><i>🐔</i> Products</a>
+            <a href="testimonials.html"><i>⭐</i> Testimonials</a>
+            <a href="promotions.html" class="active"><i>💉</i> Promotions</a>
+            <a href="inquiries.html"><i>📨</i> Inquiries</a>
+            <a href="profile.html"><i>🏢</i> Profile</a>
+        </div>
+        
+        <div class="content">
+            <div class="page-header">
+                <h2>Promotions & Vaccination Info</h2>
+                <button class="btn btn-primary" onclick="openAddModal()">➕ Add Promotion</button>
+            </div>
+            
+            <div style="overflow-x:auto;">
+                <table id="promotionsTable">
+                    <thead>
+                        <tr><th>Title</th><th>Description</th><th>Badge</th><th>Status</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody><tr><td colspan="5">Loading...</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Promotion Modal -->
+<div id="promotionModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">Add Promotion</h3>
+            <button onclick="closeModal()" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="promotionId">
+            <div class="form-group">
+                <label>Title *</label>
+                <input type="text" id="promoTitle" required placeholder="e.g., Free Vaccination Advice">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="promoDescription" rows="3" placeholder="Describe the promotion or vaccination info..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Badge Text</label>
+                <input type="text" id="promoBadge" placeholder="e.g., Free, Limited, New, Certified">
+            </div>
+            <div class="form-group">
+                <label>Icon (optional)</label>
+                <select id="promoIcon">
+                    <option value="fa-syringe">💉 Vaccination</option>
+                    <option value="fa-tag">🏷️ Discount</option>
+                    <option value="fa-certificate">📜 Certificate</option>
+                    <option value="fa-truck">🚚 Delivery</option>
+                    <option value="fa-star">⭐ Featured</option>
+                    <option value="fa-heart">❤️ Special</option>
+                </select>
+            </div>
+            <button onclick="savePromotion()" class="btn btn-primary" style="width:100%;">Save Promotion</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL = "https://amxhpxqakqrjjihwkzcq.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFteGhweHFha3FyamppaHdremNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5Nzc2NjUsImV4cCI6MjA4MzU1MzY2NX0.yIAZtz3bUc_ZxF8-f4cqW1fKJgFiRsiJdj4qgCDmM0g";
+    
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    let currentUser = null;
+    let supplierData = null;
+    let promotions = [];
+    
+    async function checkAuth() {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) {
+            window.location.href = '../login.html';
+            return;
+        }
+        currentUser = session.user;
+        document.getElementById('userEmail').textContent = currentUser.email;
+        await loadSupplier();
+        await loadPromotions();
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('dashboardContent').style.display = 'block';
+    }
+    
+    async function loadSupplier() {
+        let { data } = await sb
+            .from('poultry_suppliers')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .maybeSingle();
+        
+        if (!data) {
+            const { data: byEmail } = await sb
+                .from('poultry_suppliers')
+                .select('*')
+                .eq('email', currentUser.email)
+                .maybeSingle();
+            data = byEmail;
+        }
+        
+        supplierData = data;
+        if (supplierData) {
+            document.getElementById('companyNameHeader').textContent = supplierData.company_name || 'My Business';
+        }
+    }
+    
+    async function loadPromotions() {
+        if (!supplierData) return;
+        
+        const { data } = await sb
+            .from('poultry_promotions')
+            .select('*')
+            .eq('supplier_id', supplierData.id)
+            .order('created_at', { ascending: false });
+        
+        promotions = data || [];
+        renderPromotionsTable();
+    }
+    
+    function renderPromotionsTable() {
+        const tbody = document.querySelector('#promotionsTable tbody');
+        if (promotions.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5">No promotions yet. Click "Add Promotion" to get started. </td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = promotions.map(p => `
+            <tr>
+                <td><strong>${escapeHtml(p.title)}</strong></td>
+                <td style="max-width:300px;">${escapeHtml(p.description || '').substring(0, 100)}</td>
+                <td>${p.badge_text ? `<span style="background:#0a7cff; color:white; padding:2px 12px; border-radius:20px; font-size:12px;">${escapeHtml(p.badge_text)}</span>` : '-'}</td>
+                <td><span style="background:${p.is_active ? '#28a745' : '#dc3545'}; color:white; padding:2px 8px; border-radius:20px; font-size:12px;">${p.is_active ? 'Active' : 'Inactive'}</span></td>
+                <td><button class="btn btn-primary btn-sm" onclick="editPromotion('${p.id}')">Edit</button> <button class="btn btn-danger btn-sm" onclick="deletePromotion('${p.id}')">Delete</button></td>
+            </tr>
+        `).join('');
+    }
+    
+    function openAddModal() {
+        document.getElementById('modalTitle').textContent = 'Add Promotion';
+        document.getElementById('promotionId').value = '';
+        document.getElementById('promoTitle').value = '';
+        document.getElementById('promoDescription').value = '';
+        document.getElementById('promoBadge').value = '';
+        document.getElementById('promoIcon').value = 'fa-syringe';
+        document.getElementById('promotionModal').style.display = 'flex';
+    }
+    
+    function editPromotion(id) {
+        const p = promotions.find(p => p.id === id);
+        if (!p) return;
+        
+        document.getElementById('modalTitle').textContent = 'Edit Promotion';
+        document.getElementById('promotionId').value = p.id;
+        document.getElementById('promoTitle').value = p.title;
+        document.getElementById('promoDescription').value = p.description || '';
+        document.getElementById('promoBadge').value = p.badge_text || '';
+        document.getElementById('promoIcon').value = p.icon || 'fa-syringe';
+        document.getElementById('promotionModal').style.display = 'flex';
+    }
+    
+    function closeModal() {
+        document.getElementById('promotionModal').style.display = 'none';
+    }
+    
+    async function savePromotion() {
+        const id = document.getElementById('promotionId').value;
+        const promotion = {
+            supplier_id: supplierData.id,
+            title: document.getElementById('promoTitle').value,
+            description: document.getElementById('promoDescription').value,
+            badge_text: document.getElementById('promoBadge').value,
+            icon: document.getElementById('promoIcon').value,
+            is_active: true,
+            updated_at: new Date().toISOString()
+        };
+        
+        if (!promotion.title) {
+            showToast('Please enter a title');
+            return;
+        }
+        
+        let result;
+        if (id) {
+            result = await sb.from('poultry_promotions').update(promotion).eq('id', id);
+        } else {
+            promotion.created_at = new Date().toISOString();
+            result = await sb.from('poultry_promotions').insert([promotion]);
+        }
+        
+        if (!result.error) {
+            showToast(id ? 'Promotion updated!' : 'Promotion added!');
+            closeModal();
+            await loadPromotions();
+        } else {
+            showToast('Error: ' + result.error.message);
+        }
+    }
+    
+    async function deletePromotion(id) {
+        if (confirm('Are you sure you want to delete this promotion?')) {
+            await sb.from('poultry_promotions').delete().eq('id', id);
+            showToast('Promotion deleted');
+            await loadPromotions();
+        }
+    }
+    
+    async function logout() {
+        await sb.auth.signOut();
+        window.location.href = '../login.html';
+    }
+    
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 3000);
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    window.openAddModal = openAddModal;
+    window.editPromotion = editPromotion;
+    window.deletePromotion = deletePromotion;
+    window.closeModal = closeModal;
+    window.savePromotion = savePromotion;
+    window.logout = logout;
+    
+    checkAuth();
+</script>
+</body>
+</html>

@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<title>Testimonials - J8K Ventures Dashboard</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#f0f2f5;
+}
+
+.loading{
+    text-align:center;
+    padding:50px;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}
+
+.spinner{
+    width:50px;
+    height:50px;
+    border:4px solid #ddd;
+    border-top-color:#0a7cff;
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+    margin-bottom:20px;
+}
+
+@keyframes spin{
+    to{transform:rotate(360deg);}
+}
+
+.dashboard-header{
+    background:white;
+    padding:15px 25px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    position:sticky;
+    top:0;
+    z-index:100;
+    flex-wrap:wrap;
+    gap:15px;
+}
+
+.dashboard-header h1{
+    font-size:20px;
+    color:#0a7cff;
+}
+
+.user-info{
+    display:flex;
+    align-items:center;
+    gap:15px;
+}
+
+.user-email{
+    font-size:14px;
+    color:#666;
+}
+
+.logout-btn{
+    background:#dc3545;
+    color:white;
+    border:none;
+    padding:8px 20px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:14px;
+}
+
+.dashboard-body{
+    display:flex;
+    min-height:calc(100vh - 65px);
+}
+
+.sidebar{
+    width:260px;
+    background:#1a1a2e;
+    color:white;
+    padding:20px 0;
+}
+
+.sidebar a{
+    display:block;
+    padding:14px 20px;
+    color:white;
+    text-decoration:none;
+    transition:all 0.3s;
+}
+
+.sidebar a:hover, .sidebar a.active{
+    background:#0a7cff;
+}
+
+.sidebar a i{
+    margin-right:12px;
+    width:20px;
+}
+
+.content{
+    flex:1;
+    padding:25px;
+    overflow-x:auto;
+}
+
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+    flex-wrap:wrap;
+    gap:15px;
+}
+
+.page-header h2{
+    font-size:24px;
+}
+
+.btn{
+    padding:10px 20px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:14px;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+}
+
+.btn-primary{
+    background:#0a7cff;
+    color:white;
+}
+
+.btn-primary:hover{
+    background:#005fcc;
+}
+
+.btn-danger{
+    background:#dc3545;
+    color:white;
+}
+
+.btn-danger:hover{
+    background:#c82333;
+}
+
+.btn-sm{
+    padding:6px 12px;
+    font-size:12px;
+}
+
+.form-card{
+    background:white;
+    border-radius:12px;
+    padding:25px;
+    margin-bottom:25px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+.form-group{
+    margin-bottom:20px;
+}
+
+.form-group label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:bold;
+    font-size:14px;
+}
+
+.form-group input, .form-group textarea, .form-group select{
+    width:100%;
+    padding:12px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    font-size:14px;
+}
+
+table{
+    width:100%;
+    background:white;
+    border-radius:12px;
+    overflow:hidden;
+}
+
+th, td{
+    padding:12px;
+    text-align:left;
+    border-bottom:1px solid #eee;
+}
+
+th{
+    background:#f8f9fa;
+}
+
+.modal{
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    background:rgba(0,0,0,0.5);
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+}
+
+.modal-content{
+    background:white;
+    max-width:500px;
+    width:90%;
+    border-radius:15px;
+    max-height:85vh;
+    overflow-y:auto;
+}
+
+.modal-header{
+    padding:18px;
+    border-bottom:1px solid #ddd;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.modal-body{
+    padding:20px;
+}
+
+.toast{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    background:#333;
+    color:white;
+    padding:12px 20px;
+    border-radius:8px;
+    z-index:1000;
+    display:none;
+}
+
+@media (max-width:768px){
+    .dashboard-body{
+        flex-direction:column;
+    }
+    .sidebar{
+        width:100%;
+        display:flex;
+        overflow-x:auto;
+        padding:10px;
+    }
+    .sidebar a{
+        display:inline-block;
+        padding:10px 15px;
+        white-space:nowrap;
+    }
+    table{
+        font-size:12px;
+    }
+    th, td{
+        padding:8px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Loading testimonials...</p>
+</div>
+
+<div id="dashboardContent" style="display:none;">
+    <div class="dashboard-header">
+        <h1 id="companyNameHeader">J8K Ventures</h1>
+        <div class="user-info">
+            <span class="user-email" id="userEmail"></span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+    
+    <div class="dashboard-body">
+        <div class="sidebar">
+            <a href="index.html"><i>📊</i> Overview</a>
+            <a href="products.html"><i>🐔</i> Products</a>
+            <a href="testimonials.html" class="active"><i>⭐</i> Testimonials</a>
+            <a href="promotions.html"><i>💉</i> Promotions</a>
+            <a href="inquiries.html"><i>📨</i> Inquiries</a>
+            <a href="profile.html"><i>🏢</i> Profile</a>
+        </div>
+        
+        <div class="content">
+            <div class="page-header">
+                <h2>Customer Testimonials</h2>
+                <button class="btn btn-primary" onclick="openAddModal()">➕ Add Testimonial</button>
+            </div>
+            
+            <div style="overflow-x:auto;">
+                <table id="testimonialsTable">
+                    <thead>
+                        <tr><th>Customer</th><th>Testimonial</th><th>Rating</th><th>Status</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody><tr><td colspan="5">Loading...</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Testimonial Modal -->
+<div id="testimonialModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">Add Testimonial</h3>
+            <button onclick="closeModal()" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="testimonialId">
+            <div class="form-group">
+                <label>Customer Name *</label>
+                <input type="text" id="customerName" required>
+            </div>
+            <div class="form-group">
+                <label>Customer Role (e.g., Farmer, Business Owner)</label>
+                <input type="text" id="customerRole" placeholder="Optional">
+            </div>
+            <div class="form-group">
+                <label>Testimonial *</label>
+                <textarea id="testimonialContent" rows="4" required placeholder="What did they say about your business?"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Rating</label>
+                <select id="rating">
+                    <option value="5">★★★★★ (5 - Excellent)</option>
+                    <option value="4">★★★★☆ (4 - Very Good)</option>
+                    <option value="3">★★★☆☆ (3 - Good)</option>
+                    <option value="2">★★☆☆☆ (2 - Fair)</option>
+                    <option value="1">★☆☆☆☆ (1 - Poor)</option>
+                </select>
+            </div>
+            <button onclick="saveTestimonial()" class="btn btn-primary" style="width:100%;">Save Testimonial</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL = "https://amxhpxqakqrjjihwkzcq.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFteGhweHFha3FyamppaHdremNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5Nzc2NjUsImV4cCI6MjA4MzU1MzY2NX0.yIAZtz3bUc_ZxF8-f4cqW1fKJgFiRsiJdj4qgCDmM0g";
+    
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    let currentUser = null;
+    let supplierData = null;
+    let testimonials = [];
+    
+    async function checkAuth() {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) {
+            window.location.href = '../login.html';
+            return;
+        }
+        currentUser = session.user;
+        document.getElementById('userEmail').textContent = currentUser.email;
+        await loadSupplier();
+        await loadTestimonials();
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('dashboardContent').style.display = 'block';
+    }
+    
+    async function loadSupplier() {
+        let { data } = await sb
+            .from('poultry_suppliers')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .maybeSingle();
+        
+        if (!data) {
+            const { data: byEmail } = await sb
+                .from('poultry_suppliers')
+                .select('*')
+                .eq('email', currentUser.email)
+                .maybeSingle();
+            data = byEmail;
+        }
+        
+        supplierData = data;
+        if (supplierData) {
+            document.getElementById('companyNameHeader').textContent = supplierData.company_name || 'My Business';
+        }
+    }
+    
+    async function loadTestimonials() {
+        if (!supplierData) return;
+        
+        const { data } = await sb
+            .from('poultry_testimonials')
+            .select('*')
+            .eq('supplier_id', supplierData.id)
+            .order('created_at', { ascending: false });
+        
+        testimonials = data || [];
+        renderTestimonialsTable();
+    }
+    
+    function renderTestimonialsTable() {
+        const tbody = document.querySelector('#testimonialsTable tbody');
+        if (testimonials.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5">No testimonials yet. Click "Add Testimonial" to get started.</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = testimonials.map(t => `
+            <tr>
+                <td><strong>${escapeHtml(t.customer_name)}</strong><br><small>${escapeHtml(t.customer_role || '')}</small></td>
+                <td style="max-width:300px;">"${escapeHtml(t.content).substring(0, 100)}${t.content.length > 100 ? '...' : ''}"</td>
+                <td>${'★'.repeat(t.rating || 5)}</td>
+                <td><span style="background:${t.is_approved ? '#28a745' : '#ffc107'}; color:white; padding:2px 8px; border-radius:20px; font-size:12px;">${t.is_approved ? 'Approved' : 'Pending'}</span></td>
+                <td><button class="btn btn-primary btn-sm" onclick="editTestimonial('${t.id}')">Edit</button> <button class="btn btn-danger btn-sm" onclick="deleteTestimonial('${t.id}')">Delete</button></td>
+            </tr>
+        `).join('');
+    }
+    
+    function openAddModal() {
+        document.getElementById('modalTitle').textContent = 'Add Testimonial';
+        document.getElementById('testimonialId').value = '';
+        document.getElementById('customerName').value = '';
+        document.getElementById('customerRole').value = '';
+        document.getElementById('testimonialContent').value = '';
+        document.getElementById('rating').value = '5';
+        document.getElementById('testimonialModal').style.display = 'flex';
+    }
+    
+    function editTestimonial(id) {
+        const t = testimonials.find(t => t.id === id);
+        if (!t) return;
+        
+        document.getElementById('modalTitle').textContent = 'Edit Testimonial';
+        document.getElementById('testimonialId').value = t.id;
+        document.getElementById('customerName').value = t.customer_name;
+        document.getElementById('customerRole').value = t.customer_role || '';
+        document.getElementById('testimonialContent').value = t.content;
+        document.getElementById('rating').value = t.rating || 5;
+        document.getElementById('testimonialModal').style.display = 'flex';
+    }
+    
+    function closeModal() {
+        document.getElementById('testimonialModal').style.display = 'none';
+    }
+    
+    async function saveTestimonial() {
+        const id = document.getElementById('testimonialId').value;
+        const testimonial = {
+            supplier_id: supplierData.id,
+            customer_name: document.getElementById('customerName').value,
+            customer_role: document.getElementById('customerRole').value,
+            content: document.getElementById('testimonialContent').value,
+            rating: parseInt(document.getElementById('rating').value),
+            is_approved: true,
+            updated_at: new Date().toISOString()
+        };
+        
+        if (!testimonial.customer_name || !testimonial.content) {
+            showToast('Please fill in customer name and testimonial');
+            return;
+        }
+        
+        let result;
+        if (id) {
+            result = await sb.from('poultry_testimonials').update(testimonial).eq('id', id);
+        } else {
+            testimonial.created_at = new Date().toISOString();
+            result = await sb.from('poultry_testimonials').insert([testimonial]);
+        }
+        
+        if (!result.error) {
+            showToast(id ? 'Testimonial updated!' : 'Testimonial added!');
+            closeModal();
+            await loadTestimonials();
+        } else {
+            showToast('Error: ' + result.error.message);
+        }
+    }
+    
+    async function deleteTestimonial(id) {
+        if (confirm('Are you sure you want to delete this testimonial?')) {
+            await sb.from('poultry_testimonials').delete().eq('id', id);
+            showToast('Testimonial deleted');
+            await loadTestimonials();
+        }
+    }
+    
+    async function logout() {
+        await sb.auth.signOut();
+        window.location.href = '../login.html';
+    }
+    
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', 3000);
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    window.openAddModal = openAddModal;
+    window.editTestimonial = editTestimonial;
+    window.deleteTestimonial = deleteTestimonial;
+    window.closeModal = closeModal;
+    window.saveTestimonial = saveTestimonial;
+    window.logout = logout;
+    
+    checkAuth();
+</script>
+</body>
+</html>

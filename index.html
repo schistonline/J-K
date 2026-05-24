@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<title>Dashboard - J8K Ventures</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#f0f2f5;
+}
+
+.loading{
+    text-align:center;
+    padding:50px;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}
+
+.spinner{
+    width:50px;
+    height:50px;
+    border:4px solid #ddd;
+    border-top-color:#0a7cff;
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+    margin-bottom:20px;
+}
+
+@keyframes spin{
+    to{transform:rotate(360deg);}
+}
+
+.dashboard-header{
+    background:white;
+    padding:15px 25px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    position:sticky;
+    top:0;
+    z-index:100;
+    flex-wrap:wrap;
+    gap:15px;
+}
+
+.dashboard-header h1{
+    font-size:20px;
+    color:#0a7cff;
+}
+
+.user-info{
+    display:flex;
+    align-items:center;
+    gap:15px;
+}
+
+.user-email{
+    font-size:14px;
+    color:#666;
+}
+
+.logout-btn{
+    background:#dc3545;
+    color:white;
+    border:none;
+    padding:8px 20px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:14px;
+}
+
+.logout-btn:hover{
+    background:#c82333;
+}
+
+.dashboard-body{
+    display:flex;
+    min-height:calc(100vh - 65px);
+}
+
+.sidebar{
+    width:260px;
+    background:#1a1a2e;
+    color:white;
+    padding:20px 0;
+}
+
+.sidebar a{
+    display:block;
+    padding:14px 20px;
+    color:white;
+    text-decoration:none;
+    transition:all 0.3s;
+}
+
+.sidebar a:hover, .sidebar a.active{
+    background:#0a7cff;
+}
+
+.sidebar a i{
+    margin-right:12px;
+    width:20px;
+}
+
+.content{
+    flex:1;
+    padding:25px;
+    overflow-x:auto;
+}
+
+.stats-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+    gap:20px;
+    margin-bottom:30px;
+}
+
+.stat-card{
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    text-align:center;
+}
+
+.stat-card h3{
+    font-size:14px;
+    color:#666;
+    margin-bottom:10px;
+}
+
+.stat-card .number{
+    font-size:36px;
+    font-weight:bold;
+    color:#0a7cff;
+}
+
+.stat-card .link{
+    margin-top:10px;
+    font-size:13px;
+}
+
+.stat-card .link a{
+    color:#0a7cff;
+    text-decoration:none;
+}
+
+.quick-actions{
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    margin-bottom:30px;
+}
+
+.quick-actions h3{
+    margin-bottom:20px;
+}
+
+.btn-group{
+    display:flex;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.btn{
+    padding:12px 24px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:14px;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+}
+
+.btn-primary{
+    background:#0a7cff;
+    color:white;
+}
+
+.btn-primary:hover{
+    background:#005fcc;
+}
+
+.recent-table{
+    background:white;
+    padding:25px;
+    border-radius:12px;
+}
+
+.recent-table h3{
+    margin-bottom:20px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th, td{
+    padding:12px;
+    text-align:left;
+    border-bottom:1px solid #eee;
+}
+
+th{
+    background:#f8f9fa;
+}
+
+.toast{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    background:#333;
+    color:white;
+    padding:12px 20px;
+    border-radius:8px;
+    z-index:1000;
+    display:none;
+}
+
+@media (max-width:768px){
+    .dashboard-body{
+        flex-direction:column;
+    }
+    .sidebar{
+        width:100%;
+        display:flex;
+        overflow-x:auto;
+        padding:10px;
+    }
+    .sidebar a{
+        display:inline-block;
+        padding:10px 15px;
+        white-space:nowrap;
+    }
+    .stats-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+    table{
+        font-size:12px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Loading dashboard...</p>
+</div>
+
+<div id="dashboardContent" style="display:none;">
+    <div class="dashboard-header">
+        <h1 id="companyNameHeader">J8K Ventures</h1>
+        <div class="user-info">
+            <span class="user-email" id="userEmail"></span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+    
+    <div class="dashboard-body">
+        <div class="sidebar">
+            <a href="index.html" class="active"><i>📊</i> Overview</a>
+            <a href="products.html"><i>🐔</i> Products</a>
+            <a href="testimonials.html"><i>⭐</i> Testimonials</a>
+            <a href="promotions.html"><i>💉</i> Promotions</a>
+            <a href="inquiries.html"><i>📨</i> Inquiries</a>
+            <a href="profile.html"><i>🏢</i> Profile</a>
+        </div>
+        
+        <div class="content">
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <h3>Products</h3>
+                    <div class="number" id="statProducts">0</div>
+                    <div class="link"><a href="products.html">Manage →</a></div>
+                </div>
+                <div class="stat-card">
+                    <h3>Testimonials</h3>
+                    <div class="number" id="statTestimonials">0</div>
+                    <div class="link"><a href="testimonials.html">Manage →</a></div>
+                </div>
+                <div class="stat-card">
+                    <h3>Promotions</h3>
+                    <div class="number" id="statPromotions">0</div>
+                    <div class="link"><a href="promotions.html">Manage →</a></div>
+                </div>
+                <div class="stat-card">
+                    <h3>Inquiries</h3>
+                    <div class="number" id="statInquiries">0</div>
+                    <div class="link"><a href="inquiries.html">View →</a></div>
+                </div>
+            </div>
+            
+            <div class="quick-actions">
+                <h3>Quick Actions</h3>
+                <div class="btn-group">
+                    <a href="products.html?action=add" class="btn btn-primary">➕ Add Product</a>
+                    <a href="testimonials.html?action=add" class="btn btn-primary">⭐ Add Testimonial</a>
+                    <a href="promotions.html?action=add" class="btn btn-primary">💉 Add Promotion</a>
+                    <a href="profile.html" class="btn btn-primary">🏢 Edit Profile</a>
+                </div>
+            </div>
+            
+            <div class="recent-table">
+                <h3>Recent Inquiries</h3>
+                <div style="overflow-x:auto;">
+                    <table id="recentTable">
+                        <thead>
+                            <tr><th>Date</th><th>Customer</th><th>Product</th><th>Message</th><th>Action</th></tr>
+                        </thead>
+                        <tbody><tr><td colspan="5">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL = "https://amxhpxqakqrjjihwkzcq.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFteGhweHFha3FyamppaHdremNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5Nzc2NjUsImV4cCI6MjA4MzU1MzY2NX0.yIAZtz3bUc_ZxF8-f4cqW1fKJgFiRsiJdj4qgCDmM0g";
+    
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    let currentUser = null;
+    let supplierData = null;
+    
+    async function checkAuth() {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) {
+            window.location.href = '../login.html';
+            return;
+        }
+        currentUser = session.user;
+        document.getElementById('userEmail').textContent = currentUser.email;
+        await loadSupplier();
+        await loadStats();
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('dashboardContent').style.display = 'block';
+    }
+    
+    async function loadSupplier() {
+        let { data } = await sb
+            .from('poultry_suppliers')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .maybeSingle();
+        
+        if (!data) {
+            const { data: byEmail } = await sb
+                .from('poultry_suppliers')
+                .select('*')
+                .eq('email', currentUser.email)
+                .maybeSingle();
+            data = byEmail;
+        }
+        
+        supplierData = data;
+        if (supplierData) {
+            document.getElementById('companyNameHeader').textContent = supplierData.company_name || 'My Business';
+        }
+    }
+    
+    async function loadStats() {
+        if (!supplierData) return;
+        
+        const [products, testimonials, promotions, inquiries] = await Promise.all([
+            sb.from('poultry_products').select('id', { count:'exact' }).eq('supplier_id', supplierData.id),
+            sb.from('poultry_testimonials').select('id', { count:'exact' }).eq('supplier_id', supplierData.id),
+            sb.from('poultry_promotions').select('id', { count:'exact' }).eq('supplier_id', supplierData.id),
+            sb.from('poultry_inquiries').select('*').eq('supplier_id', supplierData.id).order('created_at', { ascending: false }).limit(5)
+        ]);
+        
+        document.getElementById('statProducts').textContent = products.count || 0;
+        document.getElementById('statTestimonials').textContent = testimonials.count || 0;
+        document.getElementById('statPromotions').textContent = promotions.count || 0;
+        document.getElementById('statInquiries').textContent = (inquiries.data || []).length;
+        
+        renderRecentInquiries(inquiries.data || []);
+    }
+    
+    function renderRecentInquiries(inquiries) {
+        const tbody = document.querySelector('#recentTable tbody');
+        if (inquiries.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5">No inquiries yet</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = inquiries.map(i => `
+            <tr>
+                <td>${new Date(i.created_at).toLocaleDateString()}</td>
+                <td>${escapeHtml(i.inquirer_name)}</td>
+                <td>${escapeHtml(i.product_interest || '-')}</td>
+                <td style="max-width:200px;">${escapeHtml((i.message || '').substring(0, 60))}</td>
+                <td><a href="https://wa.me/${i.inquirer_phone.replace(/\D/g, '')}" class="btn" style="background:#25D366; color:white; padding:5px 12px; text-decoration:none; border-radius:5px;">Reply</a></td>
+            </tr>
+        `).join('');
+    }
+    
+    async function logout() {
+        await sb.auth.signOut();
+        window.location.href = '../login.html';
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    window.logout = logout;
+    checkAuth();
+</script>
+</body>
+</html>
